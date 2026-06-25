@@ -21,11 +21,23 @@ k3s_cluster:
     # You can use ansible-vault to encrypt this value / keep it secret.
     # Or you can omit it if not using Vagrant and let the first server automatically generate one.
     token: "changeme!"
-    api_endpoint: "{{ hostvars[groups['server'][0]]['ansible_host'] | default(groups['server'][0]) }}"
+    api_endpoint: "192.168.20.100" # kube-vip IP
+
+    # kube-vip configuration (ARP only)
+    install_kube_vip: true
+    kube_vip_tag_version: v1.2.0
+
+    # Disable the taint manually by setting: k3s_master_taint = false
+    k3s_master_taint: "{{ true if groups['agent'] | default([]) | length >= 1 else false }}"
 
     # Optional vars
-    # extra_server_args: ""
-    # extra_agent_args: ""
+    extra_server_args: >-
+      --node-ip={{ ansible_host }}
+      {{ '--node-taint node-role.kubernetes.io/master=true:NoSchedule' if k3s_master_taint else '' }}
+      --tls-san {{ api_endpoint }}
+      --disable servicelb
+      --disable traefik
+    extra_agent_args: "--node-ip={{ ansible_host }}"
     # extra_install_envs: { 'INSTALL_K3S_SKIP_SELINUX_RPM': 'true' }
     # cluster_context: k3s-ansible
     # api_port: 6443

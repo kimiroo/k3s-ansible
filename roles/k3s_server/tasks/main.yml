@@ -169,6 +169,10 @@
       ansible.builtin.systemd:
         daemon_reload: true
 
+    - name: Deploy kube-vip manifest
+      ansible.builtin.include_tasks: kube-vip.yml
+      when: install_kube_vip | default(false) | bool
+
     - name: Enable and start K3s service
       ansible.builtin.service:
         name: k3s

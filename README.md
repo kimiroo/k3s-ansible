@@ -1,6 +1,16 @@
+# k3s-ansible with kube-vip
+
+This is a fork of [k3s-io/k3s-ansible](https://github.com/k3s-io/k3s-ansible) that integrates `kube-vip` out of the box. The playbook code and Jinja2 templates for `kube-vip` are adapted from [timothystewart6/k3s-ansible](https://github.com/timothystewart6/k3s-ansible).
+
+Fedora/RHEL based systems, you may need to install python netaddr library via:
+
+```bash
+sudo dnf install python3-netaddr
+```
+
 # Build a Kubernetes cluster using K3s via Ansible
 
-Author: <https://github.com/itwars>  
+Author: <https://github.com/itwars>
 Current Maintainer: <https://github.com/dereknola>
 
 Easily bring up a cluster on machines running:
@@ -24,7 +34,7 @@ The control node **must** have Ansible 8.0+ (ansible-core 2.15+)
 
 All managed nodes in inventory must have:
 - Passwordless SSH access
-- Root access (or a user with equivalent permissions) 
+- Root access (or a user with equivalent permissions)
 
 It is also recommended that all managed nodes disable firewalls and swap. See [K3s Requirements](https://docs.k3s.io/installation/requirements) for more information.
 
@@ -180,7 +190,7 @@ airgap_dir: ./my-airgap # Paths are relative to the playbooks directory
 Additionally, if deploying on an OS with SELinux, you will also need to download the latest [k3s-selinux RPM](https://github.com/k3s-io/k3s-selinux/releases/latest) and its dependencies `selinux-policy` and `container-selinux` RPMs and place them in the airgap folder.
 
 
-It is assumed that the control node has access to the internet. The playbook will automatically download the k3s install script on the control node, and then distribute all three artifacts to the managed nodes. 
+It is assumed that the control node has access to the internet. The playbook will automatically download the k3s install script on the control node, and then distribute all three artifacts to the managed nodes.
 
 ## Kubeconfig
 
