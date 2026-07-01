@@ -1,0 +1,27 @@
+---
+- name: Create manifests directory on first master
+  ansible.builtin.file:
+    path: /var/lib/rancher/k3s/server/manifests
+    state: directory
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups[server_group][0] or ansible_host == groups[server_group][0]
+
+- name: Download Calico Core Operator to first master
+  ansible.builtin.get_url:
+    url: "https://raw.githubusercontent.com/projectcalico/calico/{{ calico_tag_version }}/manifests/tigera-operator.yaml"
+    dest: /var/lib/rancher/k3s/server/manifests/00-calico-operator.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups[server_group][0] or ansible_host == groups[server_group][0]
+
+- name: Copy Calico L2 ARP Custom Resource config to first master
+  ansible.builtin.template:
+    src: calico-custom-resources.yaml.j2
+    dest: /var/lib/rancher/k3s/server/manifests/01-calico-custom-resources.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  when: inventory_hostname == groups[server_group][0] or ansible_host == groups[server_group][0]
