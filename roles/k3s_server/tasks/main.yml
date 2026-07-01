@@ -173,6 +173,10 @@
       ansible.builtin.include_tasks: kube-vip.yml
       when: install_kube_vip | default(false) | bool
 
+    - name: Deploy calico manifest
+      ansible.builtin.include_tasks: calico.yml
+      when: install_calico | default(false) | bool
+
     - name: Enable and start K3s service
       ansible.builtin.service:
         name: k3s
