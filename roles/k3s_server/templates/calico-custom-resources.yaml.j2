@@ -20,3 +20,10 @@ kind: APIServer
 metadata:
   name: default
 spec: {}
+---
+apiVersion: crd.projectcalico.org/v1
+kind: FelixConfiguration
+metadata:
+  name: default
+spec:
+  wireguardEnabled: {{ calico_wg_enabled }}
