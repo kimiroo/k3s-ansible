@@ -2,6 +2,8 @@
 
 This is a fork of [k3s-io/k3s-ansible](https://github.com/k3s-io/k3s-ansible) that integrates `kube-vip` out of the box. The playbook code and Jinja2 templates for `kube-vip` are adapted from [timothystewart6/k3s-ansible](https://github.com/timothystewart6/k3s-ansible).
 
+See `REBASE.md` on how to rebase this repo.
+
 Fedora/RHEL based systems, you may need to install python netaddr library via:
 
 ```bash
