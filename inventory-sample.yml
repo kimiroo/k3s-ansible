@@ -27,6 +27,17 @@ k3s_cluster:
     install_kube_vip: true
     kube_vip_tag_version: v1.2.0
 
+    # Calico configuration
+    install_calico: true
+    calico_tag_version: v3.32.0
+    calico_bgp: Enabled
+    calico_ip_pools:
+      - cidr: 10.42.0.0/16  # k3s cluster-cidr
+        encapsulation: None # L2 ARP (No tunneling)
+        natOutgoing: Enabled
+        nodeSelector: all()
+    calico_wg_enabled: false
+
     # Disable the taint manually by setting: k3s_master_taint = false
     k3s_master_taint: "{{ true if groups['agent'] | default([]) | length >= 1 else false }}"
 
@@ -35,9 +46,14 @@ k3s_cluster:
       --node-ip={{ ansible_host }}
       {{ '--node-taint node-role.kubernetes.io/master=true:NoSchedule' if k3s_master_taint else '' }}
       --tls-san {{ api_endpoint }}
+      {% if install_calico == true %}
+      --flannel-backend=none
+      --disable-network-policy
+      {% endif %}
       --disable servicelb
       --disable traefik
-    extra_agent_args: "--node-ip={{ ansible_host }}"
+    extra_agent_args: >-
+      --node-ip={{ ansible_host }}
     # extra_install_envs: { 'INSTALL_K3S_SKIP_SELINUX_RPM': 'true' }
     # cluster_context: k3s-ansible
     # api_port: 6443

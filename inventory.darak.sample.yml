@@ -1,0 +1,78 @@
+---
+k3s_cluster:
+  children:
+    server:
+      hosts:
+        10.5.47.11:
+        10.5.47.21:
+        10.5.47.31:
+    agent:
+      hosts:
+        10.5.47.12:
+        10.5.47.22:
+        10.5.47.32:
+
+  # Required Vars
+  vars:
+    ansible_port: 22
+    ansible_user: yongj
+    ansible_ssh_private_key_file: ~/.ssh/id_ed25519_ansible
+    k3s_version: v1.36.1+k3s1
+    token: "changeme!" # `openssl rand -base64 64` or `pwgen -s 64 1`
+    api_endpoint: "10.5.48.100" # kube-vip IP
+
+    # kube-vip configuration (ARP only)
+    install_kube_vip: true
+    kube_vip_tag_version: v1.2.0
+
+    # Calico configuration
+    install_calico: true
+    calico_tag_version: v3.32.0
+    calico_bgp: Enabled
+    calico_ip_pools:
+      - cidr: 10.42.0.0/16  # k3s cluster-cidr
+        encapsulation: None # L2 ARP (No tunneling)
+        natOutgoing: Enabled
+        nodeSelector: all()
+    calico_wg_enabled: true
+
+    # Disable the taint manually by setting: k3s_master_taint = false
+    k3s_master_taint: "{{ true if groups['agent'] | default([]) | length >= 1 else false }}"
+
+    # Optional vars
+    extra_server_args: >-
+      --node-ip={{ ansible_host }}
+      {{ '--node-taint node-role.kubernetes.io/master=true:NoSchedule' if k3s_master_taint else '' }}
+      --tls-san {{ api_endpoint }}
+      {% if install_calico == true %}
+      --flannel-backend=none
+      --disable-network-policy
+      {% endif %}
+      --disable servicelb
+      --disable traefik
+    extra_agent_args: >-
+      --node-ip={{ ansible_host }}
+
+    server_config_yaml:  |
+      # https://docs.k3s.io/installation/configuration#configuration-file
+
+      # Common
+      etcd-s3: true
+      etcd-s3-endpoint: "<CLOUDFLARE_ACCOUNT_ID>.r2.cloudflarestorage.com"
+      etcd-s3-bucket: "ichika-k3s-backups"
+      etcd-s3-folder: "etcd-snapshots"
+      etcd-s3-access-key: "<R2_ACCESS_KEY_ID>"
+      etcd-s3-secret-key: "<R2_SECRET_ACCESS_KEY>"
+      etcd-s3-region: "auto"
+      etcd-snapshot-compress: true
+      secrets-encryption: true
+
+      # Only on first master node
+      {% if inventory_hostname == groups['server'][0] %}
+      etcd-snapshot-schedule-cron: "0 */12 * * *"
+      etcd-snapshot-retention: 14
+      {% endif %}
+    # agent_config_yaml:  |
+    #   https://docs.k3s.io/installation/configuration#configuration-file
+    # registries_config_yaml:  |
+    #   https://docs.k3s.io/installation/private-registry
