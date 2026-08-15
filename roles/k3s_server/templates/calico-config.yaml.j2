@@ -1,0 +1,73 @@
+{% for peer in calico_bgp_peers %}
+---
+apiVersion: crd.projectcalico.org/v1
+kind: BGPPeer
+metadata:
+  name: {{ peer.name }}
+spec:
+  peerIP: {{ peer.peer_ip }}
+  asNumber: {{ peer.asn }}
+{% endfor %}
+---
+apiVersion: crd.projectcalico.org/v1
+kind: BGPConfiguration
+metadata:
+  name: default
+spec:
+  asNumber: {{ calico_bgp_asn }}
+  serviceLoadBalancerIPs:
+{% for ip in calico_lb_ips %}
+    - cidr: {{ ip }}
+{% endfor %}
+{% for pool in calico_ip_pool %}
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: {{ pool.name }}
+spec:
+  cidr: {{ pool.cidr }}
+  blockSize: {{ pool.block_size }}
+  disabled: false
+  allowedUses: {{ pool.allowed_uses | to_json }}
+{% endfor %}
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: default-ipv4-ippool
+spec:
+  cidr: 10.42.0.0/16
+  ipipMode: Never
+  vxlanMode: Never
+  natOutgoing: true
+  disabled: false
+  nodeSelector: all()
+  blockSize: 26
+  allowedUses:
+    - Workload
+    - Tunnel
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPPool
+metadata:
+  name: default-ipv6-ippool
+spec:
+  cidr: fdab:d9c3:fb50:42::/64
+  ipipMode: Never
+  vxlanMode: Never
+  natOutgoing: true
+  disabled: false
+  nodeSelector: all()
+  blockSize: 122
+  allowedUses:
+    - Workload
+    - Tunnel
+---
+apiVersion: crd.projectcalico.org/v1
+kind: FelixConfiguration
+metadata:
+  name: default
+spec:
+  wireguardEnabled: {{ calico_wg_enabled }}
+  wireguardEnabledV6: {{ calico_wg_enabled }}

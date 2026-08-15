@@ -188,6 +188,37 @@
       ansible.builtin.pause:
         seconds: 10
 
+    - name: Wait for Calico BGPPeer CRD to be established
+      ansible.builtin.command:
+        cmd: k3s kubectl wait --for=condition=established crd/bgppeers.crd.projectcalico.org --timeout=120s
+      register: crd_wait
+      until: crd_wait.rc == 0
+      retries: 20
+      delay: 5
+      when:
+        - install_calico | default(false) | bool
+        - not ansible_check_mode
+      changed_when: false
+
+    - name: Apply Calico BGP and Felix config
+      ansible.builtin.command:
+        cmd: k3s kubectl apply -f /tmp/calico-bgp-config.yaml
+      when:
+        - install_calico | default(false) | bool
+        - not ansible_check_mode
+
+    - name: Wait for Calico nodes to come up
+      ansible.builtin.command:
+        cmd: k3s kubectl wait --for=condition=available deployment/calico-apiserver -n calico-system --timeout=120s
+      register: crd_wait
+      until: crd_wait.rc == 0
+      retries: 30
+      delay: 5
+      when:
+        - install_calico | default(false) | bool
+        - not ansible_check_mode
+      changed_when: false
+
     - name: Check whether kubectl is installed on control node
       # noqa var-naming[no-role-prefix]
       ansible.builtin.command: 'kubectl'
