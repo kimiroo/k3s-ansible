@@ -200,9 +200,9 @@
         - not ansible_check_mode
       changed_when: false
 
-    - name: Apply Calico BGP and Felix config
+    - name: Apply Calico BGP, IPPool and Felix config
       ansible.builtin.command:
-        cmd: k3s kubectl apply -f /tmp/calico-bgp-config.yaml
+        cmd: k3s kubectl apply -f /tmp/calico-config.yaml
       when:
         - install_calico | default(false) | bool
         - not ansible_check_mode
