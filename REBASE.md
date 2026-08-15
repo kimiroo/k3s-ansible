@@ -26,3 +26,17 @@ Use `--force-with-lease` to safely update your remote fork.
 ```bash
 git push origin master --force-with-lease
 ```
+
+### If conflict occurs
+1. Edit conflicting file and stage changes
+```bash
+git add <path_to_conflicting_file>
+```
+2. Continue rebase
+```bash
+git rebase --continue
+```
+To abort rebase
+```bash
+git rebase --abort
+```
