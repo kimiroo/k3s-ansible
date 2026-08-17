@@ -101,7 +101,7 @@ k3s_cluster:
       --node-ip={{ ansible_host }},{{ node_ipv6 }}
       --cluster-cidr={{ cluster_cidr }}
       --service-cidr={{ service_cidr }}
-      {{ '--node-taint node-role.kubernetes.io/master=true:NoSchedule' if k3s_master_taint else '' }}
+      {{ '--node-taint node-role.kubernetes.io/control-plane=true:NoSchedule' if k3s_master_taint else '' }}
       --tls-san {{ api_endpoint }}
       {% if api_endpoint_list is defined %}
       {% for ip in api_endpoint_list %}
