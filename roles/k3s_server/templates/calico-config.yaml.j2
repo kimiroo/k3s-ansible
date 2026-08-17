@@ -69,5 +69,6 @@ kind: FelixConfiguration
 metadata:
   name: default
 spec:
-  wireguardEnabled: {{ calico_wg_enabled }}
-  wireguardEnabledV6: {{ calico_wg_enabled }}
+  wireguardEnabled: {{ calico_wg_enabled | default(false) }}
+  wireguardEnabledV6: {{ calico_wg_enabled | default(false) }}
+  prometheusMetricsEnabled: {{ calico_prometheus_metrics | default(true) }}
