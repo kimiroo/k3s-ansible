@@ -29,6 +29,8 @@ k3s_cluster:
     ansible_port: 22
     ansible_user: yongj
     ansible_ssh_private_key_file: ~/.ssh/id_ed25519_vm
+    ansible_python_interpreter: /usr/bin/python3
+
     k3s_version: v1.36.1+k3s1
     token: "changeme!" # `openssl rand -base64 64` or `pwgen -s 64 1`
     api_endpoint: kube.internal.darak.dev
@@ -50,46 +52,19 @@ k3s_cluster:
     calico_disable_kube_proxy: true
     calico_linux_dataplane: BPF
     calico_ip_pools:
-      - cidr: 10.42.0.0/16  # k3s Pod CIDR
+      - name: default-ipv4-ippool
+        cidr: 10.42.0.0/16  # k3s Pod CIDR
+        blockSize: 26
         encapsulation: None # L2 ARP (No tunneling)
         natOutgoing: Enabled
         nodeSelector: all()
-      - cidr: fdab:d9c3:fb50:42::/64 # k3s Pod CIDR
+      - name: default-ipv6-ippool
+        cidr: fdab:d9c3:fb50:42::/64 # k3s Pod CIDR
+        blockSize: 122
         encapsulation: None
         natOutgoing: Enabled
         nodeSelector: all()
     calico_bgp_asn: 64513
-    calico_bgp_peers:
-      - name: vyos-router-v4
-        peer_ip: 10.10.0.1
-        asn: 64512
-      - name: vyos-router-v6
-        peer_ip: fdab:d9c3:fb50:10::1
-        asn: 64512
-    calico_lb_ips:
-      - 10.45.10.0/24
-      - fdab:d9c3:fb50:45:10::/80
-    calico_ip_pool:
-      - name: api-pool-v4
-        cidr: 10.45.20.1/32
-        block_size: 24
-        allowed_uses:
-          - LoadBalancer
-      - name: api-pool-v6
-        cidr: fdab:d9c3:fb50:45:20::1/128
-        block_size: 80
-        allowed_uses:
-          - LoadBalancer
-      - name: lb-vip-pool-v4
-        cidr: 10.45.10.0/24
-        block_size: 24
-        allowed_uses:
-          - LoadBalancer
-      - name: lb-vip-pool-v6
-        cidr: fdab:d9c3:fb50:45:10::/80
-        block_size: 80
-        allowed_uses:
-          - LoadBalancer
     calico_wg_enabled: true
     calico_prometheus_metrics: true
 
@@ -114,6 +89,7 @@ k3s_cluster:
       {% endif %}
       --flannel-backend=none
       --disable-network-policy
+      --kube-controller-manager-arg=allocate-node-cidrs=false
       {% endif %}
       --disable servicelb
       --disable traefik
@@ -124,20 +100,20 @@ k3s_cluster:
       # https://docs.k3s.io/installation/configuration#configuration-file
 
       # Common
-      etcd-s3: true
-      etcd-s3-endpoint: "<CLOUDFLARE_ACCOUNT_ID>.r2.cloudflarestorage.com"
-      etcd-s3-bucket: "ichika-k3s-backups"
-      etcd-s3-folder: "etcd-snapshots"
-      etcd-s3-access-key: "<R2_ACCESS_KEY_ID>"
-      etcd-s3-secret-key: "<R2_SECRET_ACCESS_KEY>"
-      etcd-s3-region: "auto"
-      etcd-snapshot-compress: true
-      secrets-encryption: true
+      #etcd-s3: true
+      #etcd-s3-endpoint: "<CLOUDFLARE_ACCOUNT_ID>.r2.cloudflarestorage.com"
+      #etcd-s3-bucket: "<BUCKET_NAME>"
+      #etcd-s3-folder: "etcd-snapshots"
+      #etcd-s3-access-key: "<R2_ACCESS_KEY_ID>"
+      #etcd-s3-secret-key: "<R2_SECRET_ACCESS_KEY>"
+      #etcd-s3-region: "auto"
+      #etcd-snapshot-compress: true
+      #secrets-encryption: true
 
       # Only on first master node
       {% if inventory_hostname == groups['server'][0] %}
-      etcd-snapshot-schedule-cron: "0 */12 * * *"
-      etcd-snapshot-retention: 14
+      #etcd-snapshot-schedule-cron: "0 */12 * * *"
+      #etcd-snapshot-retention: 14
       {% endif %}
     # agent_config_yaml:  |
     #   https://docs.k3s.io/installation/configuration#configuration-file
